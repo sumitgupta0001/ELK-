@@ -1,0 +1,1 @@
+This is the repository for ELK stack, Ansible script and diffrent configuration are provided, for more explaination follow my blog https://sumitgupta0001.github.io under ELK stack.
