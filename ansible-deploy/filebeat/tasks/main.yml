@@ -1,0 +1,58 @@
+---
+# tasks file for ansible-role-filebeat
+- name: Add elastic apt repo key (for all elastic software)
+  sudo: yes
+  apt_key:
+    url: "https://artifacts.elastic.co/GPG-KEY-elasticsearch"
+    state: present
+  tags: 
+    - filebeat
+
+# Install filebeat as a logstash client (to deliver logs), just for demoing
+- name: Install apt-transport-https package
+  sudo: yes
+  apt:
+    name: apt-transport-https
+    state: present
+  tags:
+    - filebeat
+    
+- name: Add filebeat apt repo
+  sudo: yes
+  apt_repository:
+    repo: "deb https://artifacts.elastic.co/packages/5.x-prerelease/apt stable main"
+    update_cache: yes
+    state: present
+  tags:
+    - filebeat
+- name: update apt if needed
+  apt: update_cache=yes
+  sudo: yes
+  tags:
+    - filebeat
+
+- name: Install filebeat apt package
+  sudo: yes
+  apt:
+    name: filebeat
+    state: present
+    allow_unauthenticated: yes
+  tags:
+    - filebeat
+
+- name: Configure filebeat to read from logfiles and deliver to logstash
+  sudo: yes
+  template:
+    src: filebeat.yml.j2
+    dest: /etc/filebeat/filebeat.yml
+  notify: Restart filebeat
+  tags:
+    - filebeat
+
+- name: Enable filebeat on bootup and ensure it's started
+  sudo: yes
+  service:
+    name: filebeat
+    enabled: yes
+  tags:
+    - filebeat

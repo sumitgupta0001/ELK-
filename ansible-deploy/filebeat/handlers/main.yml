@@ -1,0 +1,4 @@
+---
+- name: Restart filebeat
+  sudo: yes
+  service: name=filebeat state=restarted

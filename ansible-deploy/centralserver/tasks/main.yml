@@ -1,0 +1,65 @@
+---
+
+- name: Ensure python-pycurl is installed
+  apt: pkg=python-pycurl state=installed
+  sudo: yes
+  tags:
+    - logstash
+
+- name: Ensure Elasticsearch apt signing key is installed
+  apt_key: url=http://packages.elasticsearch.org/GPG-KEY-elasticsearch state=present
+  sudo: yes
+  tags:
+    - logstash
+
+- name: Ensure Logstash 2.2 repository is installed
+  apt_repository: repo="deb http://packages.elasticsearch.org/logstash/2.2/debian stable main" update_cache=yes
+  sudo: yes
+  tags:
+    - logstash
+
+- name: Ensure logstash is installed
+  sudo: yes
+  apt: pkg={{item}} state=installed
+  with_items:
+    - openjdk-7-jre
+    - logstash
+  tags:
+    - logstash
+
+- name: Ensure logstash service config is in place
+  sudo: yes
+  copy: src=logstash_default dest=/etc/default/logstash
+  notify:
+    - restart logstash
+  tags:
+    - logstash
+
+- name: Ensure filebeat reciever config is in place
+  sudo: yes
+  copy: src=filebeat.conf dest=/etc/logstash/conf.d/logstash.conf
+  notify:
+    - restart logstash
+  tags:
+    - logstash
+    
+- name: Ensure SSL certificates have the correct directories
+  sudo: yes
+  file: path=/etc/pki/tls/{{item}} owner=root group=root mode=0755 state=directory
+  with_items:
+    - certs
+    - private
+  notify:
+    - restart logstash
+  tags:
+    - logstash  
+
+- name: Ensure logstash boots on startup
+  sudo: yes
+  shell: update-rc.d logstash defaults
+  notify:
+    - restart logstash
+  tags:
+    - logstash
+
+  
